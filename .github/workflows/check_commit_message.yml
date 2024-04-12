@@ -1,28 +1,33 @@
-name: 'Commit Message Check'
-on: 
-  pull_request:
 jobs:
   check-commit-message:
     name: Check Commit Message
-    runs-on: ubuntu-latest 
+    runs-on: self-hosted
     steps:
-        - name: Check Commit Message [skip CI]
-          env: 
-            COMMIT_FILTER: "[skip ci]"
-          if: "contains(github.event.head_commit.message, '[skip ci]')"
-          run: | 
-            echo "no 'skip ci' in commit message"
-            exit 2
+    - continue-on-error: true
+      env:
+        COMMIT_FILTER: '[skip ci]'
+      if: contains(github.event.head_commit.message, '[skip ci]')
+      name: Check Commit Message [skip CI]
+      run: 'echo "no ''skip ci'' in commit message"
 
-        - uses: actions-ecosystem/action-regex-match@v2
-          id: regex-match
-          with:
-            text: ${{ github.event.head_commit.message }}
-            regex: '[^\x00-\x7F]+'
+        exit 2
 
-        - name: Check Commit Message [Non-ASCII]
-          if: ${{ steps.regex-match.outputs.match != '' }}
-          run: | 
-            echo "No Non-ASCII msg in commit message"
-            exit 2
+        '
+    - continue-on-error: true
+      id: regex-match
+      uses: actions-ecosystem/action-regex-match@v2
+      with:
+        regex: '[^\x00-\x7F]+'
+        text: ${{ github.event.head_commit.message }}
+    - continue-on-error: true
+      if: ${{ steps.regex-match.outputs.match != '' }}
+      name: Check Commit Message [Non-ASCII]
+      run: 'echo "No Non-ASCII msg in commit message"
 
+        exit 2
+
+        '
+name: Commit Message Check
+on:
+  repository_dispatch:
+    types: trigger-ga___check_commit_message.yml

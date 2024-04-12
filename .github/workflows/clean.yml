@@ -1,30 +1,19 @@
-name: Clear cache
-
-on:
-  workflow_dispatch:
-
-permissions:
-  actions: write
-
 jobs:
   clear-ccache:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Clear cache
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log("About to clear")
-            const caches = await github.rest.actions.getActionsCacheList({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-            for (const cache of caches.data.actions_caches) {
-              console.log(cache)
-              github.rest.actions.deleteActionsCacheById({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                cache_id: cache.id,
-              })
-            }
-            console.log("Clear completed")
+    - continue-on-error: true
+      name: Clear cache
+      uses: actions/github-script@v7
+      with:
+        script: "console.log(\"About to clear\")\nconst caches = await github.rest.actions.getActionsCacheList({\n\
+          \  owner: context.repo.owner,\n  repo: context.repo.repo,\n})\nfor (const\
+          \ cache of caches.data.actions_caches) {\n  console.log(cache)\n  github.rest.actions.deleteActionsCacheById({\n\
+          \    owner: context.repo.owner,\n    repo: context.repo.repo,\n    cache_id:\
+          \ cache.id,\n  })\n}\nconsole.log(\"Clear completed\")\n"
+name: Clear cache
+on:
+  repository_dispatch:
+    types: trigger-ga___clean.yml
+permissions:
+  actions: write
